@@ -1,42 +1,93 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
-const path = require('path');
-const Todo = require('./models/Todo');
-const TodoModel = require('./Models/Todo');
+import React, { useState } from 'react';
 
-const app = express();
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+function LoginForm() {
+  const [username, setUsername] = useState('Zain Yaseen');
+  const [password, setPassword] = useState('hi@123');
+  const [token, setToken] = useState('');
+  const [error, setError] = useState('');
 
+  const handleSubmit = (event) => {
+    event.preventDefault();
 
+    if (!username || !password)
+    
+    {
+      setError('You are requested to provide the above credentials Please:');
+    } else {
+      setError('');
 
+      fetch('https://dummyjson.com/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
 
-app.get('/api/todos', (req, res) => {
-  Todo.find()
-    .then((todo) => {
-      res.json({todo});
-    })
-});
+        body: JSON.stringify(
+          { username, password }
+          ),
+        })
+          .then((res) => {
+            if (!res.ok) {
+              // throw new Error('Unable to login');
+            }
+              return res.json();
+          })
+          .then((data) => {
+            if (data.error) {
+              setError(data.error);
+            } else {
+              setToken(data.token);
+              localStorage.setItem('token', data.token);
+            }
+          })
+          .catch((error) => {
+            setError(error.message);
+          });
+      }
+    };
+  //     })
+  //       .then((res) => res.json())
+  //       .then((data) => {
+  //         if (data.error) {
+  //           setError(data.error);
+  //         } else {
+  //           setToken(data.token);
+  //           localStorage.setItem('token', data.token);
+  //         }
+  //       })
+  //       .catch((error) => {
+  //         setError(error.message);
+  //       });
+  //   }
+  // };
 
-app.post('/api/todos', async(req, res) => {
-  Todo.create(req.body)
-    .then((todo) => {
-      res.json(todo);
-    })
-});
+  return (
+    <div>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Username:
+          <input
+            type="text"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+          />
+        </label>
+        <br />
+        <label>
+          Password:
+          <input
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+          />
+        </label>
+        <br />
+        <button type="submit">Submit</button>
+      </form>
+      {error && <p>{error}</p>}
+      {token && <p>Token: {token}</p>}
+    </div>
+  );
+}
 
-
-app.delete('/api/todos/:id', async(req, res) => {
-  Todo.findByIdAndDelete(req.params.id)
-    .then((todo) => {
-      res.json(todo);
-    })
-});
-
-mongoose.connection("localhost://127.0.0.1/ZAYNYASEEN").then(()=>{
-    console.log("The connection has established Succesfully")
-}).catch(err=>{
-    console.log('The connection has not established yet: ');
-})
-app.listen(5000);
+export default LoginForm;
